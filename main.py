@@ -9,6 +9,7 @@ from products import list_products
 from cart import add_to_cart as ac, get_cart, remove_from_cart, delete_cart
 from checkout import checkout as chk, complete_checkout
 import os
+from functools import lru_cache
 
 app = flask.Flask(__name__)
 app.template_folder = 'templates'
@@ -123,10 +124,13 @@ def register():
             return response
     return render_template('signup.jinja',srn=SRN)
 
+    @lru_cache(maxsize=1)
+    def cached_product_list():
+        return list_products()
 
-@app.route("/browse")
-def browse():
-    return render_template('browse.jinja', items=list_products(),srn=SRN)
+    @app.route("/browse")
+    def browse():
+        return render_template('browse.jinja', items=cached_product_list(), srn=SRN)
 
 @app.route("/checkout", methods=['GET', 'POST'])
 def checkout():
